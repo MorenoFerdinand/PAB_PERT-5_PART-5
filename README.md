@@ -1,27 +1,26 @@
 # 🎟️ Event Registration App (CRUD + State Management)
 
-Aplikasi pendaftaran event modern yang dibangun dengan **Flutter**. Proyek ini mendemonstrasikan implementasi sistem **CRUD (Create, Read, Update, Delete)** yang lengkap dengan manajemen state menggunakan **Provider**.
+Aplikasi pendaftaran event modern yang dibangun dengan **Flutter**. Proyek ini mendemonstrasikan implementasi sistem **CRUD (Create, Read, Update, Delete)** yang lengkap dengan manajemen state menggunakan **Provider** serta fitur pencarian data secara real-time.
 
 
 
 ## 🌟 Fitur Unggulan
-* **Manajemen Peserta Lengkap**: Tambah baru, lihat daftar, ubah data (Edit), dan hapus peserta.
-* **Pencarian Real-time**: Filter daftar peserta secara instan berdasarkan Nama atau Program Studi.
-* **Statistik Dashboard**: Header dinamis yang menampilkan total pendaftar, jumlah laki-laki, dan jumlah perempuan.
-* **Identitas Unik (UUID)**: Menjamin integritas data menggunakan `uuid` package untuk setiap pendaftar.
+* **Manajemen Peserta Lengkap**: Tambah baru, lihat daftar peserta, ubah data (Edit), dan hapus peserta.
+* **Pencarian Real-time**: Filter daftar peserta secara instan berdasarkan **Nama** atau **Program Studi** melalui bar pencarian di halaman list.
+* **Manajemen State (Provider)**: Sinkronisasi data yang efisien antar halaman tanpa perlu reload manual.
 * **UI/UX Modern**:
-    * **Swipe to Delete**: Hapus data dengan menggeser kartu peserta.
-    * **Detail Profile**: Halaman profil yang bersih untuk melihat informasi lengkap peserta.
-    * **Form Validation**: Validasi input email dan kolom wajib untuk mencegah data kosong.
+    * **Dynamic Routing**: Navigasi antar halaman menggunakan `Named Routes`.
+    * **Data Integrity**: Validasi email unik untuk mencegah pendaftaran ganda.
+    * **Detail Profile**: Menampilkan informasi lengkap termasuk penghitungan umur otomatis dari tanggal lahir.
 
 ---
 
-## 🏗️ Arsitektur Proyek
-Proyek ini mengikuti pola pemisahan tanggung jawab (Separation of Concerns):
+## 🏗️ Arsitektur Proyek (Logic Breakdown)
+Proyek ini mengikuti pola pemisahan tanggung jawab (*Separation of Concerns*):
 
-1. **Models (`lib/models/`)**: Berisi `Registrant` class yang menyimpan data dan logika umur.
-2. **Providers (`lib/providers/`)**: Jantung aplikasi yang mengelola data di memori dan memberitahu UI saat ada perubahan.
-3. **Pages (`lib/pages/`)**: Antarmuka pengguna yang reaktif terhadap perubahan state.
+1.  **Models (`lib/models/`)**: Berisi class `Registrant` untuk struktur data dan logika bisnis (seperti hitung umur).
+2.  **Providers (`lib/providers/`)**: Pusat pengelolaan data yang menangani List peserta, fungsi pencarian, dan update data.
+3.  **Pages (`lib/pages/`)**: Antarmuka pengguna yang reaktif terhadap perubahan data di Provider.
 
 
 
@@ -30,118 +29,61 @@ Proyek ini mengikuti pola pemisahan tanggung jawab (Separation of Concerns):
 ## 🛠️ Tech Stack & Dependencies
 * **Flutter & Dart**
 * **Provider**: Library utama untuk pengelolaan State.
-* **UUID**: Digunakan untuk generate ID unik pendaftar secara runtime.
 
 ---
 
-## 💡 Catatan Teknis (Troubleshooting)
-Dalam pengembangan ini, terdapat penanganan khusus untuk **ID Initialization**:
-Awalnya terjadi error pada penggunaan `const` saat memanggil `Uuid().v4()`. Hal ini dikarenakan UUID bersifat dinamis (dibuat saat aplikasi berjalan), sehingga keyword `const` harus dihapus agar objek dapat dibuat secara runtime melalui *Constructor Initializer List*.
+## 💡 Penjelasan Kode Baru (Search & Edit Logic)
 
-```dart
-// Solusi pada model
-Registrant({ ... }) : id = id ?? Uuid().v4();
+Berikut adalah penjelasan teknis mengenai bagian kode yang baru saja ditambahkan untuk mengaktifkan fitur Pencarian dan Pengubahan data:
+
+### 1. Logika Pencarian (Real-time Filtering)
+Di dalam `RegistrationProvider`, data difilter secara dinamis sebelum dikirim ke UI.
+
+### Logika pada Getter registrants:
+#### 1. Mengecek apakah _searchQuery kosong.
+#### 2. Jika tidak, lakukan filter menggunakan .where()
+#### 3. Bandingkan input user dengan Nama atau Program Studi (Lowercase)
+
+kode:
+```bash
+registrants => _registrants.where((r) => 
+    r.name.toLowerCase().contains(_searchQuery.toLowerCase()) || 
+    r.programStudi.toLowerCase().contains(_searchQuery.toLowerCase())
+).toList();
 ```
-Gemini said
-Tentu, ini adalah format lengkap file README.md yang sangat profesional untuk repositori GitHub Anda. Penjelasan ini mencakup semua fitur canggih yang telah kita buat (CRUD, Searching, Statistik) serta solusi teknis untuk masalah UUID yang sempat kita hadapi.
+### 2. Logika Update Data (Edit Function)
+Fungsi ini memungkinkan perubahan data pada peserta yang sudah ada berdasarkan ID unik mereka.
+##### Logika pada updateRegistrant:
+#### 1. Mencari index data lama berdasarkan ID.
+#### 2. Mengganti data pada index tersebut dengan data baru.
+#### 3. Memanggil notifyListeners() untuk memperbarui tampilan List.
 
-Silakan buat file baru bernama README.md di folder utama proyek Anda, lalu salin kode di bawah ini:
+```bash
+final index = _registrants.indexWhere((r) => r.id == updatedData.id);
+if (index != -1) { _registrants[index] = updatedData; }
+```
 
-Markdown
-# 🎟️ Event Registration App (CRUD + State Management)
-
-Aplikasi pendaftaran event modern yang dibangun dengan **Flutter**. Proyek ini mendemonstrasikan implementasi sistem **CRUD (Create, Read, Update, Delete)** yang lengkap dengan manajemen state menggunakan **Provider**.
-
-
-
-## 🌟 Fitur Unggulan
-* **Manajemen Peserta Lengkap**: Tambah baru, lihat daftar, ubah data (Edit), dan hapus peserta.
-* **Pencarian Real-time**: Filter daftar peserta secara instan berdasarkan Nama atau Program Studi.
-* **Statistik Dashboard**: Header dinamis yang menampilkan total pendaftar, jumlah laki-laki, dan jumlah perempuan.
-* **Identitas Unik (UUID)**: Menjamin integritas data menggunakan `uuid` package untuk setiap pendaftar.
-* **UI/UX Modern**:
-    * **Swipe to Delete**: Hapus data dengan menggeser kartu peserta.
-    * **Detail Profile**: Halaman profil yang bersih untuk melihat informasi lengkap peserta.
-    * **Form Validation**: Validasi input email dan kolom wajib untuk mencegah data kosong.
+### 3. Integrasi UI Search & Navigation
+Pada RegistrantListPage, ditambahkan TextField yang terhubung langsung ke Provider.
+#### Mekanisme Sinkronisasi:
+```bash
+onChanged pada TextField memicu setSearchQuery()
+```
+Tombol Edit pada ListTile mengirimkan ID melalui Navigator arguments:
+```bash
+Navigator.pushNamed(context, '/', arguments: registrant.id)
+```
 
 ---
-
-## 🏗️ Arsitektur Proyek
-Proyek ini mengikuti pola pemisahan tanggung jawab (Separation of Concerns):
-
-1. **Models (`lib/models/`)**: Berisi `Registrant` class yang menyimpan data dan logika umur.
-2. **Providers (`lib/providers/`)**: Jantung aplikasi yang mengelola data di memori dan memberitahu UI saat ada perubahan.
-3. **Pages (`lib/pages/`)**: Antarmuka pengguna yang reaktif terhadap perubahan state.
-
-
-
----
-
-## 🛠️ Tech Stack & Dependencies
-* **Flutter & Dart**
-* **Provider**: Library utama untuk pengelolaan State.
-* **UUID**: Digunakan untuk generate ID unik pendaftar secara runtime.
-
----
-
-## 💡 Catatan Teknis (Troubleshooting)
-Dalam pengembangan ini, terdapat penanganan khusus untuk **ID Initialization**:
-Awalnya terjadi error pada penggunaan `const` saat memanggil `Uuid().v4()`. Hal ini dikarenakan UUID bersifat dinamis (dibuat saat aplikasi berjalan), sehingga keyword `const` harus dihapus agar objek dapat dibuat secara runtime melalui *Constructor Initializer List*.
-
-```dart
-// Solusi pada model
-Registrant({ ... }) : id = id ?? Uuid().v4();
-```
-
-## 🚀 Cara Menjalankan Proyek
-1. Clone Repositori
-```bash
-git clone [https://github.com/USERNAME-ANDA/NAMA-REPO.git](https://github.com/USERNAME-ANDA/NAMA-REPO.git)
-```
-
-2. Masuk ke Direktori Proyek
-```bash
-cd pert5_part5
-```
-
-3. Instal Dependensi
-```bash
-flutter pub get
-```
-4. Jalankan Aplikasi
-```bash
-Jalankan Aplikasi
-```
-
-   ---
-
-### Langkah Terakhir untuk Mengunggah ke GitHub:
-
-Jika Anda belum pernah mengunggahnya, jalankan perintah ini di terminal VS Code Anda:
-
-1.  **Inisialisasi Git:**
-    `git init`
-2.  **Tambahkan file:**
-    `git add .`
-3.  **Simpan perubahan:**
-    `git commit -m "Final: Event Registration App with CRUD and Statistics"`
-4.  **Hubungkan ke GitHub:** (Ganti URL dengan URL repositori yang Anda buat di website GitHub)
-    `git remote add origin https://github.com/USERNAME/REPO.git`
-5.  **Kirim:**
-    `git push -u origin main`
-
-Apakah Anda ingin saya bantu membuatkan file **`.gitignore`** juga agar folder "sampah" (seperti `build` dan `.dart_tool`) tidak ikut terunggah dan membuat repositori Anda kotor?
-
-## Lampiran
+## 📸 Lampiran Tampilan
 1. Tampilan Awal
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/f0994f4d-8585-412b-ab06-ef82e58dc267" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/99dbabd7-a55b-4109-a5a1-c20936979bcf" />
 
 ---
-
-2. Tampilan pengisian data:
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/0db704d3-7321-4975-8d09-7dd8b55210af" />
+2. Tampilan setelah registrasi
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e31bc19b-76d3-4694-a2b0-f23c40b55247" />
 
 ---
+3. Tampilan daftar peserta
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/fc796737-93f7-4d70-b8c5-47c83d482aeb" />
 
-3. Tampilan Setelah isi data:
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/be14578f-f1f6-489b-ab1b-70d1c9d4f22d" />
